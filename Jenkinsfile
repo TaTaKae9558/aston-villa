@@ -1,23 +1,35 @@
 pipeline {
     agent any
-    tools {
-        maven 'maven'
-    }
+  tools {
+    maven 'maven'
+  }
+
     stages {
         stage('Build') {
-            steps {
-                bat 'mvn clean package'
-            }
-             post {
-               always {
-                    junit 'target/surefire-reports/*.xml'
-            }
+      steps {
+        bat 'mvn clean compile'
+      }
         }
-        stage('Run Test') {
-            steps {
-                bat 'mvn test'
+
+    stage('Run tests') {
+      steps {
+        bat 'mvn test'
+      }
+
+      post {
+        always {
+          junit 'target/surefire-reports/*.xml'
+        }
+      }
+    }
+        stage('SonarQube analysis') {
+          steps {
+            script {
+            withSonarQubeEnv(installationName: 'sonar', credentialsId: 'jenkins-sonar-token') {
+            bat 'mvn sonar:sonar'
             }
+            }
+          }
         }
     }
-   }
 }
